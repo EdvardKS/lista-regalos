@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f6eedf">
+  <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
+  <meta name="referrer" content="no-referrer">
+  <title>Lista de regalos</title>
+  <meta name="description" content="__OG_DESC__">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Lista de regalos">
+  <meta property="og:locale" content="es_ES">
+  <meta property="og:title" content="__OG_TITLE__">
+  <meta property="og:description" content="__OG_DESC__">
+  <meta property="og:url" content="__OG_URL__">
+  <meta property="og:image" content="__ORIGIN__/og.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Lista de regalos">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="alternate icon" href="/favicon.png" type="image/png" sizes="48x48">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="stylesheet" href="/vendor/bootstrap.min.css">
+  <link rel="stylesheet" href="/theme.css">
+  <script src="/theme.js"></script>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-md sticky-top d-none" id="nav">
+  <div class="container">
+    <a class="navbar-brand fw-semibold" id="brand" href="#/">🎁 Lista de regalos</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu" aria-controls="navMenu" aria-expanded="false" aria-label="Menú">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navMenu">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item home-link"><a class="nav-link" href="#/">Listas</a></li>
+        <li class="nav-item admin-only d-none"><a class="nav-link" href="#/registro">Registro</a></li>
+        <li class="nav-item admin-only d-none"><a class="nav-link" href="#/config">Configuración</a></li>
+      </ul>
+      <ul class="navbar-nav">
+        <li class="nav-item dropdown">
+          <button class="nav-link dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="navUser"></button>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><button class="dropdown-item" type="button" id="themeBtn">Tema</button></li>
+            <li><button class="dropdown-item" type="button" id="privacyBtn">Privacidad</button></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><button class="dropdown-item" type="button" id="logoutBtn">Cerrar sesión</button></li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<main class="container py-3 py-md-4">
+  <div id="alerts"></div>
+  <div id="view">
+    <div class="text-center py-5"><div class="spinner-border text-secondary" role="status"><span class="visually-hidden">Cargando…</span></div></div>
+  </div>
+  <noscript><div class="alert alert-warning">Esta página necesita JavaScript para funcionar.</div></noscript>
+</main>
+
+<!-- Confirmar regalo -->
+<div class="modal fade" id="buyModal" tabindex="-1" aria-labelledby="buyTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <form class="modal-content" id="buyForm">
+      <div class="modal-header">
+        <h2 class="modal-title fs-5" id="buyTitle">¿Seguro que quieres comprar esto?</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <p class="fw-semibold mb-2" id="buyItem"></p>
+        <div class="alert alert-warning" id="buyWarn"></div>
+        <label class="form-label" for="buyFrom">¿De parte de quién es el regalo?</label>
+        <input class="form-control" id="buyFrom" maxlength="120" required autocomplete="name" placeholder="Por ejemplo: los tíos Ana y Luis">
+        <div class="mt-3 d-none" id="buyAmountWrap">
+          <label class="form-label" for="buyAmount">¿Cuánto quieres poner? (€)</label>
+          <input class="form-control" id="buyAmount" inputmode="decimal" maxlength="9" pattern="[0-9]+([.,][0-9]{1,2})?">
+        </div>
+        <div class="text-danger small mt-2 d-none" id="buyError"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="submit" class="btn btn-primary" id="buySubmit">Sí, lo regalo yo</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Añadir / editar artículo (admins) -->
+<div class="modal fade" id="itemModal" tabindex="-1" aria-labelledby="itemTitle" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-fullscreen-sm-down modal-dialog-centered modal-dialog-scrollable">
+    <form class="modal-content" id="itemForm">
+      <div class="modal-header">
+        <h2 class="modal-title fs-5" id="itemTitle">Añadir artículo</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <label class="form-label" for="itemUrl">Enlace del producto</label>
+        <div class="input-group mb-1">
+          <input class="form-control" id="itemUrl" type="url" maxlength="2000" placeholder="https://www.amazon.es/…">
+          <button class="btn btn-primary" type="button" id="itemFetch">Cargar datos</button>
+        </div>
+        <div class="form-text mb-3" id="itemFetchMsg">Pega el enlace y pulsa «Cargar datos»: rellenamos la ficha por ti y luego puedes retocarla.</div>
+        <div class="row g-3">
+          <div class="col-5 col-md-4 mx-auto">
+            <div class="ratio ratio-1x1 img-tile img-tile-round">
+              <img class="object-fit-contain p-2 d-none" id="itemImg" alt="">
+              <div class="d-flex align-items-center justify-content-center text-body-secondary small" id="itemNoImg">Sin foto</div>
+            </div>
+          </div>
+          <div class="col-12 col-md-8">
+            <div class="mb-3">
+              <label class="form-label" for="itemName">Título</label>
+              <input class="form-control" id="itemName" maxlength="200" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label" for="itemDesc">Descripción</label>
+              <textarea class="form-control" id="itemDesc" rows="4" maxlength="600"></textarea>
+            </div>
+            <div class="mb-3">
+              <label class="form-label" for="itemPrice">Precio</label>
+              <input class="form-control" id="itemPrice" maxlength="40" inputmode="decimal" placeholder="29,99 €">
+            </div>
+            <div class="row g-3 mb-3">
+              <div class="col-6">
+                <label class="form-label" for="itemQty">¿Cuántos hacen falta?</label>
+                <input class="form-control" id="itemQty" type="number" inputmode="numeric" min="1" max="99" step="1" value="1">
+                <div class="form-text">Más de 1: sigue en la lista hasta que se regalen todos.</div>
+              </div>
+              <div class="col-6">
+                <label class="form-label" for="itemGroup">Regalo entre varios (€)</label>
+                <input class="form-control" id="itemGroup" inputmode="decimal" maxlength="9" placeholder="Vacío = no">
+                <div class="form-text">Importe total a reunir entre varias personas.</div>
+              </div>
+            </div>
+            <div class="form-check form-switch mb-3">
+              <input class="form-check-input" type="checkbox" role="switch" id="itemFav">
+              <label class="form-check-label" for="itemFav">⭐ Nos hace mucha ilusión</label>
+            </div>
+            <div>
+              <label class="form-label" for="itemImageUrl">Cambiar foto (enlace a una imagen)</label>
+              <input class="form-control" id="itemImageUrl" type="url" maxlength="2000" placeholder="https://…jpg">
+            </div>
+          </div>
+        </div>
+        <div class="text-danger small mt-3 d-none" id="itemError"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="submit" class="btn btn-primary" id="itemSubmit">Guardar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Nueva lista (admins) -->
+<div class="modal fade" id="listModal" tabindex="-1" aria-labelledby="listTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <form class="modal-content" id="listForm">
+      <div class="modal-header">
+        <h2 class="modal-title fs-5" id="listTitle">Nueva lista</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label class="form-label" for="listName">Nombre</label>
+          <input class="form-control" id="listName" maxlength="80" required placeholder="Lista cumpleaños">
+        </div>
+        <label class="form-label" for="listDesc">Descripción (opcional)</label>
+        <input class="form-control" id="listDesc" maxlength="300">
+        <div class="text-danger small mt-2 d-none" id="listError"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Crear lista</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Política de privacidad -->
+<div class="modal fade" id="privacyModal" tabindex="-1" aria-labelledby="privacyTitle" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-fullscreen-sm-down modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title fs-5" id="privacyTitle">Política de privacidad</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <p class="small text-body-secondary">Versión del 20 de noviembre de 2026. Conforme al Reglamento (UE) 2016/679 (RGPD) y a la Ley Orgánica 3/2018 (LOPDGDD).</p>
+        <h3 class="h6">Quién trata tus datos</h3>
+        <p>Los organizadores de estas listas de regalos, que son particulares y las usan con fines personales y familiares. Contacto: __PRIVACY_CONTACT__.</p>
+        <h3 class="h6">Qué datos guardamos</h3>
+        <ul>
+          <li>Tu número de móvil y tu correo electrónico, que tú mismo escribes al entrar.</li>
+          <li>Los regalos que marcas, «de parte de quién» son, la cantidad que aportas si es un regalo entre varios y la fecha.</li>
+          <li>La fecha de tus accesos.</li>
+        </ul>
+        <p>No guardamos contraseñas, datos de pago ni tu ubicación. No usamos publicidad ni analítica.</p>
+        <h3 class="h6">Para qué los usamos</h3>
+        <ul>
+          <li>Comprobar con un PIN que el correo es tuyo y dejarte entrar.</li>
+          <li>Que los organizadores sepan quién regala cada cosa y nadie lo repita, y poder contactar contigo sobre ese regalo.</li>
+          <li>Proteger la web frente a usos indebidos.</li>
+        </ul>
+        <h3 class="h6">Por qué podemos hacerlo</h3>
+        <p>Por tu consentimiento, que das al introducir el PIN que te enviamos. Puedes retirarlo cuando quieras escribiendo al contacto de arriba.</p>
+        <h3 class="h6">Quién los ve</h3>
+        <p>Solo los organizadores. El resto de invitados no ve tu teléfono, tu correo ni qué has regalado. No cedemos ni vendemos los datos a nadie. Están alojados en un servidor dentro de la Unión Europea y no se transfieren fuera.</p>
+        <h3 class="h6">Cuánto tiempo</h3>
+        <p>El registro de accesos se borra solo a los 90 días. Los regalos marcados se conservan mientras la lista esté activa, hasta que los organizadores la borren o tú pidas que se elimine lo tuyo.</p>
+        <h3 class="h6">Tus derechos</h3>
+        <p>Puedes pedir ver, corregir o borrar tus datos, oponerte a su uso, limitarlo o llevártelos (portabilidad), escribiendo al contacto de arriba. Si crees que no se han atendido, puedes reclamar ante la Agencia Española de Protección de Datos (www.aepd.es).</p>
+        <h3 class="h6">Cookies</h3>
+        <p class="mb-0">Solo una cookie técnica imprescindible para mantener tu sesión iniciada (dura 7 días desde tu última visita). En tu navegador se guardan además el tema claro u oscuro y, para tu comodidad, el correo y el «de parte de quién» que escribiste. No hay cookies de terceros ni de seguimiento.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Entendido</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/vendor/bootstrap.bundle.min.js"></script>
+<script src="/app.js"></script>
+</body>
+</html>

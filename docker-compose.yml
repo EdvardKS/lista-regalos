@@ -1,0 +1,46 @@
+# Lista de regalos. Sin build: el código se monta en solo lectura sobre la imagen oficial de Node.
+# Toda la configuración propia (dominio, admins, correo) va en .env — ver .env.example.
+name: listas
+
+services:
+  web:
+    image: node:22-alpine
+    container_name: listas-web
+    restart: unless-stopped
+    user: "1000:1000"
+    working_dir: /app
+    command: ["node", "--disable-warning=ExperimentalWarning", "server.js"]
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      DATA_DIR: /data
+      TRUST_PROXY: "1"
+    env_file:
+      - .env
+    volumes:
+      - ./app:/app:ro
+      - ./data:/data
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 256m
+    pids_limit: 100
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/robots.txt',{headers:{'user-agent':'Mozilla/5.0 healthcheck'}}).then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - reverse_proxy   # red del proxy inverso (nginx) que publica el sitio
+      - mail_net        # red del relay SMTP
+
+networks:
+  reverse_proxy:
+    external: true
+  mail_net:
+    external: true
